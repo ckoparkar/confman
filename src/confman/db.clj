@@ -1,20 +1,19 @@
 (ns confman.db
   (:require [com.stuartsierra.component :as component]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [taoensso.carmine :as car :refer (wcar)]))
 
 
-(defn stub-kvs []
-  [{:key "helpshift/hello/world" :value "world"}
-   {:key "helpshift/hello/you" :value "you"}
-   {:key "com/google/in" :value "in"}])
+(def conn {:pool {} :spec {}})
+(defmacro wcar* [& body] `(car/wcar conn ~@body))
 
 (defrecord DB []
   component/Lifecycle
   (start [this]
-    (println "associated kvs")
-    (assoc this :kvs (stub-kvs)))
+    (println "Connected to DB.")
+    (assoc this :conn {:pool {} :spec {}}))
   (stop [this]
-    (dissoc this :kvs)))
+    (dissoc this :conn)))
 
 
 (defn new-database []
@@ -31,7 +30,13 @@
     (fn [kv key] (= (:key kv) key))))
 
 
+(defn get-all-kvs [db]
+  (map (fn [[k v]] {:key k :value v})
+   (car/wcar (:conn db) (car/parse-map (car/hgetall "kvs")))
+   ))
+
+
 (defn get-kvs [db prefix recurse]
-  (let [kvs (:kvs db)]
+  (let [kvs (get-all-kvs db)]
     (filter #((get-filter-fn recurse) % prefix) kvs)
     ))
