@@ -21,7 +21,17 @@
   (DB.))
 
 
-(defn get-kvs [db prefix]
+;; returns a filter fn for either a exact macthing key,
+;; or a prefix based match
+(defn get-filter-fn [recurse]
+  (if (= recurse "true")
+    ;; prefix match
+    (fn [kv prefix] (str/starts-with? (:key kv) prefix))
+    ;; exact match
+    (fn [kv key] (= (:key kv) key))))
+
+
+(defn get-kvs [db prefix recurse]
   (let [kvs (:kvs db)]
-    (filter #(str/starts-with? (:key %)prefix) kvs)
+    (filter #((get-filter-fn recurse) % prefix) kvs)
     ))

@@ -4,7 +4,9 @@
             [compojure.route :as route]
             [com.stuartsierra.component :as component]
             [confman.db :as db]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json]
+            [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.keyword-params :refer [wrap-keyword-params]]))
 
 
 (defn index [req]
@@ -14,10 +16,12 @@
 
 
 (defn get-kvs [req]
-  (let [prefix (get-in req [:params :*])]
+  (let [prefix (get-in req [:params :*])
+        recurse (get-in req [:params :recurse])
+        kvs (db/get-kvs (::db req) prefix recurse)]
     {:status  200
      :headers {"Content-Type" "application/json"}
-     :body (json/write-str (db/get-kvs (::db req) prefix))
+     :body (json/write-str kvs)
      }))
 
 
@@ -34,7 +38,9 @@
 
 (defn make-handler [db]
   (-> routes
-     (wrap-db-component db)))
+     (wrap-db-component db)
+     wrap-keyword-params
+     wrap-params))
 
 
 (defn start-server [handler port]

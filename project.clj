@@ -7,7 +7,8 @@
                  [http-kit "2.1.19"]
                  [com.stuartsierra/component "0.3.1"]
                  [compojure "1.4.0"]
-                 [org.clojure/data.json "0.2.6"]]
+                 [org.clojure/data.json "0.2.6"]
+                 [ring/ring-core "1.4.0"]]
   :main confman.system
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
