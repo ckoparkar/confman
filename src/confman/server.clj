@@ -3,7 +3,8 @@
             [compojure.core :refer [defroutes GET]]
             [compojure.route :as route]
             [com.stuartsierra.component :as component]
-            [confman.db :refer [get-kvs]]))
+            [confman.db :as db]
+            [clojure.data.json :as json]))
 
 
 (defn index [req]
@@ -12,13 +13,17 @@
    :body    "hello world"})
 
 
-(defn kvs [req]
-   {:body (get-kvs (::db req))})
+(defn get-kvs [req]
+  (let [prefix (get-in req [:params :*])]
+    {:status  200
+     :headers {"Content-Type" "application/json"}
+     :body (json/write-str (db/get-kvs (::db req) prefix))
+     }))
 
 
 (defroutes routes
   (GET "/" [] index)
-  (GET "/v1/kvs" [] kvs)
+  (GET "/v1/kv/*" [] get-kvs)
   (route/not-found "<h1>Page not found</h1>"))
 
 
