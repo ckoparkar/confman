@@ -18,7 +18,8 @@
 (defn get-kvs [req]
   (let [prefix (get-in req [:params :*])
         recurse (get-in req [:params :recurse])
-        kvs (db/get-kvs (::db req) prefix recurse)]
+        token (get-in req [:params :token] :anonymous)
+        kvs (db/get-kvs (::db req) prefix recurse token)]
     {:status  200
      :headers {"Content-Type" "application/json"}
      :body (json/write-str kvs)
